@@ -1,0 +1,62 @@
+---CODIS PYTHON PER LES FIGURES 6.1 I 6.2---
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def f(x):  # Condició inicial
+    return np.cos(np.pi * x)**2
+
+
+def Analisi_terme_difusio(N, L, M, k, D):
+    '''
+        Paràmetres:
+            N -> Nombre d'lements de la partició espacial
+            L -> Longitud de la barra
+            M -> Nombre d'elements de la partició temporal
+            k -> Passa temporal
+            D -> Constant de difusió
+    '''
+
+    h = L / N  # Passa espacial
+
+    x = np.zeros(N + 1)  # Generam un vector per la partició del mallat espaial
+    for i in range(N + 1):
+        x[i] = i * h
+
+    u = np.zeros((N + 1, M + 1))  # Generam la matriu de solucions
+    u[:, 0] = f(x)  #Afegim la condició incial
+
+    for j in range(0, M):  # Frontera esquerra (i = 0)
+        u[0, j + 1] = (2 * D * k / h ** 2) * u[1, j] - \
+                      k * u[0, j] ** 2 + (1 + k - 2 * D * k / h ** 2) * u[0, j]
+        for i in range(1, N):  # Punts interns
+            u[i, j + 1] = (D * k / h ** 2) * u[i + 1, j] -k * u[i, j] ** 2 +\
+                          (1 + k - 2 * D * k / h ** 2) * u[i, j] + (D * k / h ** 2) * u[i - 1, j]
+        u[N, j + 1] = -k * u[N, j] ** 2 + (1 + k - 2 * D * k / h ** 2) * u[N, j] +\
+                      (2 * D * k / h ** 2) * u[N - 1, j]  # Frontera dreta
+
+    plt.figure(figsize=(8, 6))
+    temps_a_mostrar = list(range(0, M + 1, max(1, M // 10)))   #Temps que volem mostrar
+    t_005 = int(0.05 / k)   #  Cream t=0.05, temps proper a l'inicial per veure la tendència a curt termini
+
+    if t_005 not in temps_a_mostrar and t_005 < M:
+        temps_a_mostrar.append(t_005)   #Afegir t=0.05 a la llista de temps que volem mostrar
+    for j in sorted(temps_a_mostrar):
+        plt.plot(x, u[:, j], label=f'Temps {j * k:.2f}')  #Temps que es mostren
+
+    plt.xlabel('Posició x', fontsize=15)   #Etiqueta eix x
+    plt.ylabel('u(x,t)', fontsize=15)   #Etiqueta eix u(x,t)
+    plt.title('Evolució de u(x,t) segons el temps', fontsize=15)   #Etiqueta del gràfic
+    plt.legend(fontsize=12)  #Llegenda
+    plt.grid(True) #Crea una quadricula
+    plt.show()  #Mostrar els resultats
+
+N = 20  # Nombre de punts en la partició espaial
+L = 1.0  # Longitud del interval
+M = 5000  #Nombre de punts en la partició temporal
+k = 0.001  # Passa temporal
+D = 0.1 #En cas de voler observar la difusió lenta posar D=0.01. Coeficient de difusió
+data = Analisi_terme_difusio(N, L, M, k, D)
+
+
+
