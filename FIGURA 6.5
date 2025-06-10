@@ -1,0 +1,59 @@
+---CODI PYTHON PER LA FIGURA 6.5---
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def f(x):  # Condició inicial
+    return np.random.rand(len(x))  # Valors aleatoris entre 0 i 1
+
+def Sistema_explicit_FKPP_random(N, L, t, k, D):
+    '''
+        Parámetros:
+            N -> Nombre d'elementos de la partició espacial
+            L -> Longitud del interval
+            t -> Tiemps màxim
+            k -> Passa temporal
+            D -> Constant de difusió
+    '''
+    T = int(t / k)
+    h = L / N  # Passa espacial
+
+    x = np.zeros(N + 1)  # Generam un vector per la partició del mallat espaial
+    for i in range(N + 1):
+        x[i] = i * h
+
+    u = np.zeros((N + 1, T + 1)) # Generam la matriu de solucions
+    u[:, 0] = f(x)  #Afegim la condició incial
+
+    for j in range(0, T):  # Frontera esquerra (i = 0)
+        u[0, j + 1] = (2 * D * k / h ** 2) * u[1, j] - k * u[0, j] ** 2 + (1 + k - 2 * D * k / h ** 2) * u[0, j]
+        for i in range(1, N):  # Punts interns
+            u[i, j + 1] = (D * k / h ** 2) * u[i + 1, j] - k * u[i, j] ** 2 + (1 + k - 2 * D * k / h ** 2) * u[i, j] + (D * k / h ** 2) * u[i - 1, j]
+        u[N, j + 1] = -k * u[N, j] ** 2 + (1 + k - 2 * D * k / h ** 2) * u[N, j] + (2 * D * k / h ** 2) * u[N - 1, j]  # Frontera dreta
+
+
+    temps_a_mostrar = list(range(0, T + 1, max(1, T // 10)))  #Llista de temps a mostrar
+    t_005= int(0.05 / k)  # Afegim la solució a t=0.05 per observar la tendència a curt termini
+
+    if t_005 not in temps_a_mostrar and t_005 < T:  #Afegir t=0.05 en cas que no sigui a la llista
+        temps_a_mostrar.append(t_005)
+
+    for j in sorted(temps_a_mostrar): #Mostrar els temps per separat
+        plt.figure(figsize=(8, 6))
+        plt.plot(x, u[:, j], label=f'Temps {j * k:.2f}')
+        plt.xlabel('Posició x', fontsize=26)   #Etiqueta del eix x
+        plt.ylabel('u(x,t)', fontsize=26)    #Etiqueta del gràfic
+        plt.title(f'Evolució de u(x,t) a t = {j * k:.2f}', fontsize=28)    #Etiqueta del gràfic
+        plt.legend(fontsize=22)  #Llegenda
+        plt.grid(True)   #Crear una quadricula
+        plt.ylim(0, 1)  # Restringir l'eix y entre 0 y 1
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
+        plt.show()  #Moatrar resultats
+
+N = 50   #Nombre de punts en la partició espacial
+L = 1.0  #Longitud del interval
+t = 5  # Temps màximo
+k = 0.001  # Passa temporal
+D = 0.1  # Coeficient de difusió
+data = sistema_explicit_FKPP_random(N, L, t, k, D)
