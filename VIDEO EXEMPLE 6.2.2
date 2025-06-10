@@ -1,0 +1,127 @@
+---CODIS PYTHON PEL VIDEO 6.2.2---
+
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import imageio
+import os
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+
+def f(x, y):  # Condición inicial
+    X, Y = np.meshgrid(x,y)  # Creació del eix
+    return np.exp(-(np.sqrt(X**2+Y**2)-2)**2)  #Condició inciial f(X)=e^{-x^2 - y^2}
+
+def Fisher_Kolmogorov_2_Dimensiones(N, M, L, t, k, D):
+    '''
+            Paràmetres:
+                N -> Nombre d'elements de la partició del eix x
+                M -> Nombre d'elements de la partició del eix x
+                L -> Longitut del costat del quadrat
+                t -> Tiemps màximo
+                k -> Passa temporal
+                D -> Constant de difusió
+    '''
+
+    T = int(t / k)  #Nombre d'elements de la partició temporal
+    h = L / N  # Passa eix x
+    r = L / M  # Passa eix y
+
+    # Crear el quadrat [-L/2,l/2]^2
+    x = np.linspace(-5, 5, N + 1)
+    y = np.linspace(-5, 5, M + 1)
+
+    u = np.zeros((N + 1, M + 1, T + 1))  # Matriu u(x, y, t)
+    u[:, :, 0] = f(x, y)  # Afegim la condició inicial
+
+    # Crear un writer de vídeo fent servir imageio
+    video_writer = imageio.get_writer('volca_video.mp4', fps=20)
+
+    # Visualització inicial (t = 0)
+    X, Y = np.meshgrid(x, y)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(X, Y, u[:, :, 0], cmap='viridis')
+    ax.set_xlabel('x')   #Etiqueta eix x
+    ax.set_ylabel('y')   #Etiqueta eix y
+    ax.set_zlabel('u(x, y, t)')   #Etiqueta eix u(x,y,t)
+    ax.set_title('Gràfic de $u(x, y, t)$ al llarg del temps.')   #Etiqueta del gràfic
+
+    # Feim servir FigureCanvasAgg per guardar la imatge en un buffer
+    canvas = FigureCanvas(fig)
+    canvas.draw()
+    # Convertim la figura a una imatge en format 
+    img = np.array(canvas.renderer.buffer_rgba())
+    # Primer frame del video
+    video_writer.append_data(img)
+
+    for j in range(0, T):
+        # Fronteres
+        for m in range(0, M):
+            u[0, m, j + 1] = k * u[0, m, j] * (1 - u[0, m, j]) + k * D * (
+                    (2 * u[1, m, j] - 2 * u[0, m, j]) / (h ** 2) +
+                    (u[0, m + 1, j] - 2 * u[0, m, j] + u[0, m - 1, j]) / (r ** 2)) + u[0, m, j]
+        for i in range(0, N):
+            u[i, 0, j + 1] = k * u[i, 0, j] * (1 - u[i, 0, j]) + k * D * (
+                    (u[i + 1, 0, j] - 2 * u[i, 0, j] + u[i - 1, 0, j]) / (h ** 2) +
+                    (2 * u[i, 1, j] - 2 * u[i, 0, j]) / (r ** 2)) + u[i, 0, j]
+
+        # Punts interns
+        for i in range(1, N):
+            for m in range(1, M):
+                u[i, m, j + 1] = k * u[i, m, j] * (1 - u[i, m, j]) + k * D * (
+                        (u[i + 1, m, j] - 2 * u[i, m, j] + u[i - 1, m, j]) / (h ** 2) +
+                        (u[i, m + 1, j] - 2 * u[i, m, j] + u[i, m - 1, j]) / (r ** 2)) + u[i, m, j]
+
+        # Fronteres
+        for m in range(0, M):
+            u[N, m, j + 1] = k * u[N, m, j] * (1 - u[N, m, j]) + k * D * (
+                    (2 * u[N - 1, m, j] - 2 * u[N, m, j]) / (h ** 2) +
+                    (u[N, m + 1, j] - 2 * u[N, m, j] + u[N, m - 1, j]) / (r ** 2)) + u[N, m, j]
+
+        for i in range(0, N):
+            u[i, M, j + 1] = k * u[i, M, j] * (1 - u[i, M, j]) + k * D * (
+                    (u[i + 1, M, j] - 2 * u[i, M, j] + u[i - 1, M, j]) / (h ** 2) +
+                    (2 * u[i, M - 1, j] - 2 * u[i, M, j]) / (r ** 2)) + u[i, M, j]
+
+        #Extrems del domini
+        u[0,0,j+1] = k * u[0, 0, j] * (1 - u[0, 0, j]) + k * D * (
+                    (2 * u[1, 0, j] - 2 * u[0, 0, j]) / (h ** 2) +
+                    (2*u[0, 1, j] - 2 * u[0, 0, j] ) / (r ** 2)) + u[0, 0, j]
+        u[0, M, j + 1] = k * u[0, M, j] * (1 - u[0, M, j]) + k * D * (
+                (2 * u[1, M, j] - 2 * u[0, M, j]) / (h ** 2) +
+                (2*u[0, M - 1, j] - 2 * u[0, M, j]) / (r ** 2)) + u[0, M, j]
+        u[N, 0, j + 1] = k * u[N, 0, j] * (1 - u[N, 0, j]) + k * D * (
+                (2*u[N - 1, 0, j] - 2 * u[N, 0, j]) / (h ** 2) +
+                (2 * u[N, 1, j] - 2 * u[N, 0, j]) / (r ** 2)) + u[N, 0, j]
+        u[N, M, j + 1] = k * u[N, M, j] * (1 - u[N, M, j]) + k * D * (
+                (2 * u[N - 1, M, j] - 2 * u[N, M, j]) / (h ** 2) +
+                (2*u[N, M - 1, j] - 2*u[N, M, j]) / (r ** 2)) + u[N, M, j]
+
+        if j % 5 == 0:  #Temps que mostram. Mostrar cada 50 passes
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.plot_surface(X, Y, u[:, :, j], cmap='viridis')
+            ax.set_xlabel('x')   #Etiqueta eix x video
+            ax.set_ylabel('y')   #Etiqueta eix y video
+            ax.set_zlabel('u(x, y, t)')  #Etiqueta eix u(x,y,t) video
+            ax.set_title(f'Gràfic de $u(x, y, t)$ al llarg del temps.')   #Etiqueta del gràfic video
+
+            # Usamos FigureCanvasAgg par guardar la imatge en un buffer
+            canvas = FigureCanvas(fig)
+            canvas.draw()
+            # Convertim la figura a una imagen en format RGB
+            img = np.array(canvas.renderer.buffer_rgba())
+            # Agregar el frame al video
+            video_writer.append_data(img)
+
+    video_writer.close()  # Fin del video
+    os.startfile('volca_video.mp4')
+
+
+N = 100  # Nombre d'elements a l'eix X
+M = 100  # Nombre d'elementos a l'eix Y
+L = 10  # Longitut del costat del quadrat
+t = 8 # Temps màxim
+k = 0.01  # Passa temporal
+D = 0.1  # Constant de difusió
+Fisher_Kolmogorov_2_Dimensiones(N, M, L, t, k, D)
