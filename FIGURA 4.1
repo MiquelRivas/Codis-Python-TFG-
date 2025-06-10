@@ -1,0 +1,30 @@
+---CODI PYTHON PER LA FIGURA 4.1---
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+#Definim els  eixos
+x_vals = np.linspace(-0.5, 1.5, 20)  #Partició per l'eix x  (punt inicial, punt final, nombre d'elements de la partició)
+y_vals = np.linspace(-0.5, 0.5, 20)  #Partició per l'eix y   (punt inicial, punt final, nombre d'elements de la partició)
+x, y = np.meshgrid(x_vals, y_vals)   #Creació del eix
+
+
+#Cream el camp vectorial amb les variables del problema
+U = y
+V = -3*y-x*(1-x)
+
+
+plt.figure(figsize=(8, 8))
+plt.streamplot(x, y, U, V, color='blue', density=1.2, arrowsize=1)  #Corbes integrals
+
+
+plt.axhline(0, color='black', linewidth=1)  # Eix U (x)
+plt.axvline(0, color='black', linewidth=1)  # Eix V (y)
+plt.xlabel('U')  #Etiqueta de l'eix U
+plt.ylabel('V')  #Etiqueta de l'eix V
+plt.title('Òbites del Camp Vectorial F(U,V)=(V,-3V-U(1-U))')   #Etiqueta del gràfic
+plt.grid(True)    #Crea una quadricula per l'eix
+plt.gca().set_aspect('equal')    #Mateixa escala
+plt.show()    #Mostrar els resultats
+
