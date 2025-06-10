@@ -1,0 +1,38 @@
+---CODI PYTHON PER LA FIGURA 4.2---
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.linspace(-0.1, 1.1, 30)    #Partició per l'eix x  (punt inicial, punt final, nombre d'elements de la partició)
+y = np.linspace(-1.6, 0.1, 30)  #Partició per l'eix y   (punt inicial, punt final, nombre d'elements de la partició)
+X, Y = np.meshgrid(x, y)   #Creació del eix
+
+
+# Camp vectorial amb les variables del problema (c=3)
+U = Y
+V = -3*Y - X*(1 - X)
+
+
+#Regió del problema amb c=3
+regio = (Y >= -1.5*X) & (Y <= 0) & (X <= 1)   #Es seleccionen els punts dins la regió
+U_masked = np.where(regio, U, np.nan)     #Agrupa els punts de dins de la regió
+V_masked = np.where(regio, V, np.nan)      #Agrupa els punts de dins de la regió
+
+
+plt.figure(figsize=(8, 6))
+plt.quiver(X, Y, U_masked, V_masked, color='blue', pivot='middle')    #Direcció del camp dins la regió
+plt.title(r"Direccions del camp vectorial $F(U, V) = (V, -3V - U(1 - U))$ a la regió $\Omega$.")    #Etiqueta del gràfic
+plt.xlabel("U")   #Etiqueta de l'eix U
+plt.ylabel("V")   #Etiqueta de l'eix V
+plt.grid(True)    #Crea una quadricula per l'eix
+
+
+# Dibuixar la regió
+x_line = np.linspace(0, 1, 100)
+plt.plot(x_line, -1.5*x_line, 'r--', label='V = -3/2 U')  #V=-3/2U
+plt.plot([1, 1], [-1.5, 0], 'g--', label='U = 1')     #U=1
+plt.plot([0, 1], [0, 0], 'k--', label='V = 0')        #V=0
+plt.fill([0, 1, 1], [0, 0, -1.5], color='gray', alpha=0.1)    #Interior de la regió
+plt.legend()    #Crear legenda amb les etiquetes de la regió
+plt.show()     #Mostrar els resultats
