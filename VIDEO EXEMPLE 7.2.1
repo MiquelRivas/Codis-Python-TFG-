@@ -37,7 +37,7 @@ def Exemple_glioma(N, M, L, t, k, D, r, K):
     u[:, :, 0] = f(x, y)  # Afegim la condició inicial
 
     # Crear un writer de video fent servir imageio
-    video_writer = imageio.get_writer('exemple_video.mp4', fps=20)
+    video_writer = imageio.get_writer('exemple_video_tumor2.mp4', fps=20)
 
     # Visualització inicial (t = 0)
     X, Y = np.meshgrid(x, y)
@@ -89,22 +89,18 @@ def Exemple_glioma(N, M, L, t, k, D, r, K):
                     (2 * u[i, M - 1, j] - 2 * u[i, M, j]) / (s ** 2)) + u[i, M, j]
 
         #Extrems del domini
-        u[0, 0, j + 1] = k * r * u[0, 0, j] * (1 - u[0, 0, j] / K) + k * D * (
-                (2 * u[1, 0, j] - 2 * u[0, 0, j]) / (h ** 2) +
-                (u[0, 1, j] - 2 * u[0, m, j] + u[0, 1, j]) / (s ** 2)) + u[0, 0, j]
-
-        u[0, M, j + 1] = k * r * u[0, M, j] * (1 - u[0, M, j] / K) + k * D * (
+        u[0,0,j+1] = k * r * u[0, 0, j] * (1 - u[0, 0, j]/K) + k * D * (
+                    (2 * u[1, 0, j] - 2 * u[0, 0, j]) / (h ** 2) +
+                    (2*u[0, 1, j] - 2 * u[0, 0, j] ) / (r ** 2)) + u[0, 0, j]
+        u[0, M, j + 1] = k * r * u[0, M, j] * (1 - u[0, M, j]/K) + k * D * (
                 (2 * u[1, M, j] - 2 * u[0, M, j]) / (h ** 2) +
-                (2*u[0, M - 1, j] - 2 * u[0, M, j]) / (s ** 2)) + u[0, M, j]
-
-        u[N, 0, j + 1] = k * r * u[N, 0, j] * (1 - u[N, 0, j] / K) + k * D * (
+                (2*u[0, M - 1, j] - 2 * u[0, M, j]) / (r ** 2)) + u[0, M, j]
+        u[N, 0, j + 1] = k * r * u[N, 0, j] * (1 - u[N, 0, j]/K) + k * D * (
                 (2*u[N - 1, 0, j] - 2 * u[N, 0, j]) / (h ** 2) +
-                (2 * u[N, 1, j] - 2 * u[N, 0, j]) / (s ** 2)) + u[N, 0, j]
-
-        u[N, M, j + 1] = k * r * u[N, M, j] * (1 - u[N, M, j] / K) + k * D * (
+                (2 * u[N, 1, j] - 2 * u[N, 0, j]) / (r ** 2)) + u[N, 0, j]
+        u[N, M, j + 1] = k * r * u[N, M, j] * (1 - u[N, M, j]/K) + k * D * (
                 (2 * u[N - 1, M, j] - 2 * u[N, M, j]) / (h ** 2) +
-                (2*u[N, M - 1, j] - 2 * u[N, M, j]) / (s ** 2)) + u[N, M, j]
-
+                (2*u[N, M - 1, j] - 2*u[N, M, j]) / (r ** 2)) + u[N, M, j]
 
         if j % 5 == 0: #Temps que mostram. Mostrar cada 50 passes
             fig = plt.figure()
@@ -124,7 +120,7 @@ def Exemple_glioma(N, M, L, t, k, D, r, K):
             video_writer.append_data(img)
 
     video_writer.close()  # Fin del video
-    os.startfile('exemple_video.mp4')
+    os.startfile('exemple_video_tumor2.mp4')
 
 N = 100  # Nombre d'elements a l'eix X
 M = 100  # Nombre d'elementos a l'eix Y
@@ -132,6 +128,10 @@ L = 10  # Longitut del costat del quadrat
 t = 12 # Temps màxim
 k = 0.01  # Passa temporal
 D = 0.25 # Constant de difusió
+r = 0.83   #Taxa creixement
+K = 1   #Capacitat de càrrega
+Exemple_glioma(N, M, L, t, k, D, r, K)
+
 r = 0.83   #Taxa creixement
 K = 1   #Capacitat de càrrega
 Exemple_glioma(N, M, L, t, k, D, r, K)
